@@ -1,0 +1,80 @@
+<Window x:Class="WindowSpot.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WindowSpot"
+        Width="640"
+        SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        WindowStartupLocation="Manual"
+        Visibility="Hidden"
+        Deactivated="Window_Deactivated"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Border Background="#F0202020" CornerRadius="12" BorderBrush="#33FFFFFF" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.5" Color="Black"/>
+        </Border.Effect>
+        <StackPanel>
+            <TextBox x:Name="QueryBox"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Foreground="White"
+                     CaretBrush="White"
+                     FontSize="26"
+                     Padding="18,16"
+                     TextChanged="QueryBox_TextChanged"/>
+            <Border Height="1" Background="#22FFFFFF"/>
+            <ListBox x:Name="ResultsList"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     MaxHeight="400"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     Focusable="False"
+                     PreviewMouseLeftButtonUp="ResultsList_PreviewMouseLeftButtonUp">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="14,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Title}" Foreground="White" FontSize="15"/>
+                                <TextBlock Text="{Binding Subtitle}" Foreground="#99FFFFFF" FontSize="12"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Margin="6,2">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#405A9EFF"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="#15FFFFFF"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+        </StackPanel>
+    </Border>
+</Window>
