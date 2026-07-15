@@ -1,0 +1,23 @@
+<Window x:Class="WindowSpot.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="WindowSpot AI 설정"
+        Width="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        Background="#F0202020"
+        ResizeMode="NoResize">
+    <StackPanel Margin="20">
+        <TextBlock Text="Ask AI (OpenRouter) 설정" Foreground="White" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+        <TextBlock Text="OpenRouter API 키" Foreground="#B3FFFFFF" FontSize="12" Margin="0,0,0,4"/>
+        <PasswordBox x:Name="ApiKeyBox" Padding="8" Margin="0,0,0,12"/>
+        <TextBlock Text="모델 (예: anthropic/claude-3.5-sonnet)" Foreground="#B3FFFFFF" FontSize="12" Margin="0,0,0,4"/>
+        <TextBox x:Name="ModelBox" Padding="8" Margin="0,0,0,16"/>
+        <TextBlock Text="비워두면 Ask AI 기능이 비활성화됩니다. openrouter.ai에서 키를 발급받으세요."
+                   Foreground="#80FFFFFF" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,16"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CancelButton" Content="취소" Width="80" Margin="0,0,8,0" Click="CancelButton_Click"/>
+            <Button x:Name="SaveButton" Content="저장" Width="80" Click="SaveButton_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

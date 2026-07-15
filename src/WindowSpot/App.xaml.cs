@@ -17,6 +17,9 @@ public partial class App : Application
     private HotkeyManager? _hotkeyManager;
     private MainWindow? _mainWindow;
     private AppIndexer? _appIndexer;
+    private FavoritesStore? _favoritesStore;
+    private UsageStore? _usageStore;
+    private SettingsStore? _settingsStore;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -32,15 +35,21 @@ public partial class App : Application
         }
 
         _appIndexer = new AppIndexer();
+        _usageStore = new UsageStore();
+        _favoritesStore = new FavoritesStore();
+        _settingsStore = new SettingsStore();
+
         var searchEngine = new SearchEngine(new ISearchProvider[]
         {
             new CalculatorProvider(),
-            new AppSearchProvider(_appIndexer),
+            new ExchangeRateProvider(),
+            new UrlProvider(),
+            new AppSearchProvider(_appIndexer, _usageStore),
             new FileSearchProvider(),
             new WebSearchProvider(),
         });
 
-        _mainWindow = new MainWindow(searchEngine);
+        _mainWindow = new MainWindow(searchEngine, _appIndexer, _favoritesStore, _usageStore, _settingsStore);
 
         RegisterHotkey();
         SetupTrayIcon();
@@ -78,11 +87,21 @@ public partial class App : Application
 
         var menu = new ContextMenuStrip();
         menu.Items.Add("열기 (Alt+Space)", null, (_, _) => _mainWindow!.ShowAtCenter());
+        menu.Items.Add("AI 설정...", null, (_, _) => OpenSettings());
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("종료", null, (_, _) => Shutdown());
 
         _trayIcon.ContextMenuStrip = menu;
         _trayIcon.DoubleClick += (_, _) => _mainWindow!.ShowAtCenter();
+    }
+
+    private void OpenSettings()
+    {
+        var settingsWindow = new SettingsWindow(_settingsStore!);
+        if (settingsWindow.ShowDialog() == true)
+        {
+            _mainWindow!.RefreshAiEnabled();
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
