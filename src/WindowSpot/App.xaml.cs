@@ -39,13 +39,23 @@ public partial class App : Application
 
         try
         {
-            _mutex = new Mutex(true, "WindowSpot.SingleInstance", out bool createdNew);
-            if (!createdNew)
+            try
             {
-                MessageBox.Show("WindowSpot이 이미 실행 중입니다.", "WindowSpot",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                Shutdown();
-                return;
+                _mutex = new Mutex(true, "WindowSpot.SingleInstance", out bool createdNew);
+                if (!createdNew)
+                {
+                    MessageBox.Show("WindowSpot이 이미 실행 중입니다.", "WindowSpot",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    Shutdown();
+                    return;
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // 다른 보안 컨텍스트(예: 백신의 사전 실행 검사용 샌드박스)가 이미 같은 이름의
+                // 뮤텍스를 만들어놔서 이 프로세스 권한으로는 열 수 없는 경우. 중복 실행
+                // 여부를 확인할 수 없을 뿐, 실제로 이미 실행 중인 것은 아니므로 계속 진행한다.
+                _mutex = null;
             }
 
             _appIndexer = new AppIndexer();
