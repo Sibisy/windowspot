@@ -25,36 +25,57 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        _mutex = new Mutex(true, "WindowSpot.SingleInstance", out bool createdNew);
-        if (!createdNew)
+        DispatcherUnhandledException += (_, args) =>
         {
-            MessageBox.Show("WindowSpot이 이미 실행 중입니다.", "WindowSpot",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-            Shutdown();
-            return;
+            MessageBox.Show($"예상치 못한 오류가 발생했습니다:\n\n{args.Exception}",
+                "WindowSpot 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            args.Handled = true;
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            MessageBox.Show($"복구할 수 없는 오류가 발생해 종료됩니다:\n\n{args.ExceptionObject}",
+                "WindowSpot 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+        };
+
+        try
+        {
+            _mutex = new Mutex(true, "WindowSpot.SingleInstance", out bool createdNew);
+            if (!createdNew)
+            {
+                MessageBox.Show("WindowSpot이 이미 실행 중입니다.", "WindowSpot",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown();
+                return;
+            }
+
+            _appIndexer = new AppIndexer();
+            _usageStore = new UsageStore();
+            _favoritesStore = new FavoritesStore();
+            _settingsStore = new SettingsStore();
+
+            var searchEngine = new SearchEngine(new ISearchProvider[]
+            {
+                new CalculatorProvider(),
+                new ExchangeRateProvider(),
+                new UrlProvider(),
+                new AppSearchProvider(_appIndexer, _usageStore),
+                new FileSearchProvider(),
+                new WebSearchProvider(),
+            });
+
+            _mainWindow = new MainWindow(searchEngine, _appIndexer, _favoritesStore, _usageStore, _settingsStore);
+
+            RegisterHotkey();
+            SetupTrayIcon();
+
+            await _appIndexer.InitializeAsync();
         }
-
-        _appIndexer = new AppIndexer();
-        _usageStore = new UsageStore();
-        _favoritesStore = new FavoritesStore();
-        _settingsStore = new SettingsStore();
-
-        var searchEngine = new SearchEngine(new ISearchProvider[]
+        catch (Exception ex)
         {
-            new CalculatorProvider(),
-            new ExchangeRateProvider(),
-            new UrlProvider(),
-            new AppSearchProvider(_appIndexer, _usageStore),
-            new FileSearchProvider(),
-            new WebSearchProvider(),
-        });
-
-        _mainWindow = new MainWindow(searchEngine, _appIndexer, _favoritesStore, _usageStore, _settingsStore);
-
-        RegisterHotkey();
-        SetupTrayIcon();
-
-        await _appIndexer.InitializeAsync();
+            MessageBox.Show($"시작 중 오류가 발생했습니다:\n\n{ex}",
+                "WindowSpot 시작 오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
+        }
     }
 
     private void RegisterHotkey()
