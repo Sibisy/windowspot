@@ -88,21 +88,7 @@ public class AppIndexer : IDisposable
             {
                 if (!Directory.Exists(root)) continue;
 
-                IEnumerable<string> files;
-                try
-                {
-                    files = Directory.EnumerateFiles(root, "*.lnk", SearchOption.AllDirectories);
-                }
-                catch (IOException)
-                {
-                    continue;
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    continue;
-                }
-
-                foreach (var lnk in files)
+                foreach (var lnk in SafeEnumerateLnkFiles(root))
                 {
                     var resolved = ShortcutResolver.Resolve(lnk);
                     if (resolved is null) continue;
@@ -134,5 +120,40 @@ public class AppIndexer : IDisposable
     {
         foreach (var watcher in _watchers) watcher.Dispose();
         _debounceTimer?.Dispose();
+    }
+
+    /// <summary>
+    /// Directory.EnumerateFiles(..., SearchOption.AllDirectories)는 지연 실행이라, 트리 중간의
+    /// 권한 없는 하위 폴더를 만나면 그 시점에 순회하다가 예외가 새어나간다(호출 시점에 감싸는
+    /// try/catch로는 못 막음). 폴더 단위로 직접 재귀하며 각 폴더에서 나는 예외를 그 자리에서
+    /// 잡아 건너뛰고, 나머지 형제/하위 폴더는 계속 스캔한다.
+    /// </summary>
+    private static List<string> SafeEnumerateLnkFiles(string root)
+    {
+        var result = new List<string>();
+        var pending = new Stack<string>();
+        pending.Push(root);
+
+        while (pending.Count > 0)
+        {
+            string dir = pending.Pop();
+            List<string> subDirs;
+            List<string> files;
+
+            try
+            {
+                subDirs = Directory.EnumerateDirectories(dir).ToList();
+                files = Directory.EnumerateFiles(dir, "*.lnk").ToList();
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+            {
+                continue;
+            }
+
+            foreach (var sub in subDirs) pending.Push(sub);
+            result.AddRange(files);
+        }
+
+        return result;
     }
 }
