@@ -25,14 +25,18 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        CrashLogger.Log("시작", "OnStartup 진입");
+
         DispatcherUnhandledException += (_, args) =>
         {
+            CrashLogger.Log("DispatcherUnhandledException", args.Exception);
             MessageBox.Show($"예상치 못한 오류가 발생했습니다:\n\n{args.Exception}",
                 "WindowSpot 오류", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
+            CrashLogger.Log("AppDomain.UnhandledException", args.ExceptionObject);
             MessageBox.Show($"복구할 수 없는 오류가 발생해 종료됩니다:\n\n{args.ExceptionObject}",
                 "WindowSpot 오류", MessageBoxButton.OK, MessageBoxImage.Error);
         };
@@ -78,10 +82,19 @@ public partial class App : Application
             RegisterHotkey();
             SetupTrayIcon();
 
+            CrashLogger.Log("시작", "SetupTrayIcon 완료, AppIndexer 초기화 시작");
             await _appIndexer.InitializeAsync();
+            CrashLogger.Log("시작", "AppIndexer 초기화 완료 — 정상 시작됨");
+
+            // 트레이 아이콘만으로는 실행 여부를 확인하기 어려우므로, 시작 직후
+            // 검색창을 한 번 띄워 정상 구동을 눈으로 바로 확인할 수 있게 한다.
+            _mainWindow!.ShowAtCenter();
+            _trayIcon!.ShowBalloonTip(4000, "WindowSpot",
+                "실행되었습니다. Alt+Space로 검색창을 열고 닫을 수 있어요.", ToolTipIcon.Info);
         }
         catch (Exception ex)
         {
+            CrashLogger.Log("시작 오류", ex);
             MessageBox.Show($"시작 중 오류가 발생했습니다:\n\n{ex}",
                 "WindowSpot 시작 오류", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown();
