@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using WindowSpot.Models;
+using Clipboard = System.Windows.Clipboard;
 
 namespace WindowSpot.Providers;
 

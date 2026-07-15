@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using WindowSpot.Models;
 using WindowSpot.Services;
+using Clipboard = System.Windows.Clipboard;
 
 namespace WindowSpot.Providers;
 
