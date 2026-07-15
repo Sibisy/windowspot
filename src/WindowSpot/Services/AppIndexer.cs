@@ -50,17 +50,26 @@ public class AppIndexer : IDisposable
         {
             if (!Directory.Exists(root)) continue;
 
-            var watcher = new FileSystemWatcher(root)
+            try
             {
-                IncludeSubdirectories = true,
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName,
-            };
-            watcher.Created += (_, _) => ScheduleRebuild();
-            watcher.Deleted += (_, _) => ScheduleRebuild();
-            watcher.Renamed += (_, _) => ScheduleRebuild();
-            watcher.EnableRaisingEvents = true;
+                var watcher = new FileSystemWatcher(root)
+                {
+                    IncludeSubdirectories = true,
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName,
+                };
+                watcher.Created += (_, _) => ScheduleRebuild();
+                watcher.Deleted += (_, _) => ScheduleRebuild();
+                watcher.Renamed += (_, _) => ScheduleRebuild();
+                watcher.EnableRaisingEvents = true;
 
-            _watchers.Add(watcher);
+                _watchers.Add(watcher);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
+            {
+                // 이 폴더에 대한 실시간 감시 권한이 없는 환경(보안 소프트웨어의 사전 실행
+                // 검사 등)에서는 그냥 그 폴더의 실시간 갱신만 포기하고 계속 진행한다.
+                // 최초 스캔(RebuildAsync)은 이미 끝난 뒤라 앱 목록 자체는 정상 동작한다.
+            }
         }
     }
 
