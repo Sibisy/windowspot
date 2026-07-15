@@ -11,6 +11,7 @@ using WindowSpot.Models;
 using WindowSpot.Providers;
 using WindowSpot.Services;
 using MessageBox = System.Windows.MessageBox;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace WindowSpot;
 
